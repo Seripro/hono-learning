@@ -5,6 +5,20 @@ import { eq } from "drizzle-orm";
 
 const todoListRoute = new Hono();
 
+const toTodoListResponse = (todoList: {
+  id: number;
+  title: string;
+  description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}) => ({
+  id: todoList.id,
+  title: todoList.title,
+  description: todoList.description ?? "",
+  created_at: todoList.createdAt,
+  updated_at: todoList.updatedAt,
+});
+
 todoListRoute.get("/lists/:listId", async (c) => {
   const listId = Number(c.req.param("listId"));
   const todoList = await db.query.todoLists.findFirst({
@@ -22,6 +36,13 @@ todoListRoute.get("/lists/:listId", async (c) => {
     created_at: todoList.createdAt,
     updated_at: todoList.updatedAt,
   });
+});
+
+todoListRoute.get("/lists", async (c) => {
+  const todoLists = await db.query.todoLists.findMany({
+    orderBy: (todoLists, { asc }) => [asc(todoLists.id)],
+  });
+  return c.json(todoLists.map(toTodoListResponse));
 });
 
 type NewTodoList = {
