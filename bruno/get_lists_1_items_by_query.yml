@@ -1,0 +1,24 @@
+info:
+  name: get_lists_1_items_by_query
+  type: http
+
+http:
+  method: GET
+  url: http://localhost:3000/lists/:listId/items?page=1&page_size=2
+  params:
+    - name: page
+      value: "1"
+      type: query
+    - name: page_size
+      value: "2"
+      type: query
+    - name: listId
+      value: "1"
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
