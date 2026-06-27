@@ -1,0 +1,18 @@
+info:
+  name: get_lists_1_items
+  type: http
+
+http:
+  method: GET
+  url: http://localhost:3000/lists/:listId/items
+  params:
+    - name: listId
+      value: "1"
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
