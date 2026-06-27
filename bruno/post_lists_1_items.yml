@@ -1,0 +1,26 @@
+info:
+  name: post_lists_1_items
+  type: http
+
+http:
+  method: POST
+  url: http://localhost:3000/lists/:listId/items
+  params:
+    - name: listId
+      value: "1"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "title": "新しいTODO項目",
+        "description": "APIから追加したTODO項目です",
+        "due_at": "2026-04-02T00:00:00+09:00"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
