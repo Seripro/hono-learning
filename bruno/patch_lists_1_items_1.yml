@@ -1,0 +1,30 @@
+info:
+  name: patch_lists_1_items_1
+  type: http
+
+http:
+  method: PATCH
+  url: http://localhost:3000/lists/:listId/items/:itemId
+  params:
+    - name: itemId
+      value: "1"
+      type: path
+    - name: listId
+      value: "1"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "title": "未完了のTODO項目（更新後）",
+        "description": "説明文を更新しました",
+        "due_at": "2026-04-03T00:00:00+09:00",
+        "complete": true
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
