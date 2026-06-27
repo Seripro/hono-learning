@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { db } from "../db/client.js";
 import { todoItems, todoLists } from "../db/schema.js";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 const helloRoute = new Hono();
 
@@ -178,6 +178,49 @@ helloRoute.post("lists/:listId/items", async (c) => {
     },
     200,
   );
+});
+
+type UpdateTodoItem = {
+  title?: string;
+  description?: string;
+  due_at?: string; // ISO 8601形式の日時文字列
+  complete?: boolean; // 完了状態(true: 完了, false: 未完了)
+};
+
+helloRoute.patch("/lists/:listId/items/:itemId", async (c) => {
+  const listId = Number(c.req.param("listId"));
+  const itemId = Number(c.req.param("itemId"));
+  const { title, description, due_at, complete } =
+    await c.req.json<UpdateTodoItem>();
+  const updatedRows = await db
+    .update(todoItems)
+    .set({
+      title,
+      description,
+      dueAt: due_at ? new Date(due_at) : undefined,
+      statusCode: complete ? 2 : 1,
+    })
+    .where(and(eq(todoItems.todoListId, listId), eq(todoItems.id, itemId)))
+    .returning();
+  if (updatedRows.length === 0) {
+    return c.json({ error: "Todo item not found" }, 404);
+  }
+
+  if (updatedRows.length !== 1) {
+    return c.json({ error: "Failed to update todo item" }, 500);
+  }
+
+  const updated = updatedRows[0];
+  return c.json({
+    id: updated.id,
+    todo_list_id: updated.todoListId,
+    title: updated.title,
+    description: updated.description ?? "",
+    status_code: updated.statusCode,
+    due_at: updated.dueAt,
+    created_at: updated.createdAt,
+    updated_at: updated.updatedAt,
+  });
 });
 
 export default helloRoute;
