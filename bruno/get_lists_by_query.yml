@@ -1,0 +1,21 @@
+info:
+  name: get_lists_by_query
+  type: http
+
+http:
+  method: GET
+  url: http://localhost:3000/lists?page=1&page_size=3
+  params:
+    - name: page
+      value: "1"
+      type: query
+    - name: page_size
+      value: "3"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
