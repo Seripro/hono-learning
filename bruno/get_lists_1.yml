@@ -1,10 +1,15 @@
 info:
   name: get_lists_1
   type: http
+  seq: 1
 
 http:
   method: GET
-  url: http:/localhost:3000/lists/1
+  url: http://localhost:3000/lists/:listId
+  params:
+    - name: listId
+      value: "1"
+      type: path
   auth: inherit
 
 settings:
