@@ -99,4 +99,22 @@ helloRoute.patch("/lists/:listId", async (c) => {
   });
 });
 
+helloRoute.delete("/lists/:listId", async (c) => {
+  const listId = Number(c.req.param("listId"));
+  const deletedRows = await db
+    .delete(todoLists)
+    .where(eq(todoLists.id, listId))
+    .returning();
+
+  if (deletedRows.length === 0) {
+    return c.json({ error: "Todo list not found" }, 404);
+  }
+
+  if (deletedRows.length !== 1) {
+    return c.json({ error: "Failed to delete todo list" }, 500);
+  }
+
+  return c.json({}, 200);
+});
+
 export default helloRoute;
