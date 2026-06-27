@@ -117,4 +117,27 @@ helloRoute.delete("/lists/:listId", async (c) => {
   return c.json({}, 200);
 });
 
+helloRoute.get("/lists/:listId/items/:itemId", async (c) => {
+  const listId = Number(c.req.param("listId"));
+  const itemId = Number(c.req.param("itemId"));
+  const todoItem = await db.query.todoItems.findFirst({
+    where: (todoItems, { and, eq }) =>
+      and(eq(todoItems.todoListId, listId), eq(todoItems.id, itemId)),
+  });
+
+  if (!todoItem) {
+    return c.json({ error: "Todo item not found" }, 404);
+  }
+  return c.json({
+    id: todoItem.id,
+    todo_list_id: todoItem.todoListId,
+    title: todoItem.title,
+    description: todoItem.description ?? "",
+    status_code: todoItem.statusCode,
+    due_at: todoItem.dueAt,
+    created_at: todoItem.createdAt,
+    updated_at: todoItem.updatedAt,
+  });
+});
+
 export default helloRoute;
