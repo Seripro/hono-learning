@@ -5,6 +5,26 @@ import { and, eq } from "drizzle-orm";
 
 const todoItemRoute = new Hono();
 
+const toTodoItemResponse = (todoItem: {
+  id: number;
+  todoListId: number;
+  title: string;
+  description: string | null;
+  statusCode: number;
+  dueAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}) => ({
+  id: todoItem.id,
+  todo_list_id: todoItem.todoListId,
+  title: todoItem.title,
+  description: todoItem.description ?? "",
+  status_code: todoItem.statusCode,
+  due_at: todoItem.dueAt,
+  created_at: todoItem.createdAt,
+  updated_at: todoItem.updatedAt,
+});
+
 todoItemRoute.get("/lists/:listId/items/:itemId", async (c) => {
   const listId = Number(c.req.param("listId"));
   const itemId = Number(c.req.param("itemId"));
@@ -26,6 +46,16 @@ todoItemRoute.get("/lists/:listId/items/:itemId", async (c) => {
     created_at: todoItem.createdAt,
     updated_at: todoItem.updatedAt,
   });
+});
+
+todoItemRoute.get("lists/:listId/items", async (c) => {
+  const listId = Number(c.req.param("listId"));
+  const rows = await db.query.todoItems.findMany({
+    where: (todoItems, { eq }) => eq(todoItems.todoListId, listId),
+    orderBy: (todoItems, { asc }) => [asc(todoItems.id)],
+  });
+
+  return c.json(rows.map(toTodoItemResponse));
 });
 
 type NewTodoItem = {
@@ -62,7 +92,7 @@ todoItemRoute.post("lists/:listId/items", async (c) => {
       created_at: inserted.createdAt,
       updated_at: inserted.updatedAt,
       status_code: inserted.statusCode,
-      dueAt: inserted.dueAt,
+      due_at: inserted.dueAt,
     },
     200,
   );
