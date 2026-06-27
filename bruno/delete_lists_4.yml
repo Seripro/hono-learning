@@ -1,0 +1,20 @@
+info:
+  name: delete_lists_4
+  type: http
+  seq: 1
+
+http:
+  method: DELETE
+  url: http://localhost:3000/lists/:listId
+  params:
+    - name: listId
+      value: "4"
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+​
