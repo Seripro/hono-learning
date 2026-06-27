@@ -223,4 +223,23 @@ helloRoute.patch("/lists/:listId/items/:itemId", async (c) => {
   });
 });
 
+helloRoute.delete("/lists/:listId/items/:itemId", async (c) => {
+  const listId = Number(c.req.param("listId"));
+  const itemId = Number(c.req.param("itemId"));
+  const deletedRows = await db
+    .delete(todoItems)
+    .where(and(eq(todoItems.todoListId, listId), eq(todoItems.id, itemId)))
+    .returning();
+
+  if (deletedRows.length === 0) {
+    return c.json({ error: "Todo item not found" }, 404);
+  }
+
+  if (deletedRows.length !== 1) {
+    return c.json({ error: "Failed to delete todo item" }, 500);
+  }
+
+  return c.json({}, 200);
+});
+
 export default helloRoute;
