@@ -1,0 +1,21 @@
+info:
+  name: patch_lists_4
+  type: http
+
+http:
+  method: PATCH
+  url: http://localhost:3000/lists/4
+  body:
+    type: json
+    data: |-
+      {
+        "title": "更新後のリスト",
+        "description": "更新しました"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
