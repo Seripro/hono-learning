@@ -1,0 +1,25 @@
+info:
+  name: post_lists
+  type: http
+
+http:
+  method: POST
+  url: http://localhost:3000/lists
+  params:
+    - name: ""
+      value: ""
+      type: query
+  body:
+    type: json
+    data: |-
+      {
+        "title": "買い物リスト",
+        "description": "今週の買い物"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
