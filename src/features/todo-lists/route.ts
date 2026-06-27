@@ -19,6 +19,16 @@ const toTodoListResponse = (todoList: {
   updated_at: todoList.updatedAt,
 });
 
+const toPositiveInt = (value: string | undefined) => {
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    return undefined;
+  }
+
+  return parsed;
+};
+
 todoListRoute.get("/lists/:listId", async (c) => {
   const listId = Number(c.req.param("listId"));
   const todoList = await db.query.todoLists.findFirst({
@@ -38,10 +48,31 @@ todoListRoute.get("/lists/:listId", async (c) => {
   });
 });
 
+type TodoListRow = {
+  id: number;
+  title: string;
+  description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 todoListRoute.get("/lists", async (c) => {
-  const todoLists = await db.query.todoLists.findMany({
-    orderBy: (todoLists, { asc }) => [asc(todoLists.id)],
-  });
+  const page = toPositiveInt(c.req.query("page"));
+  const pageSize = toPositiveInt(c.req.query("page_size"));
+  let todoLists: TodoListRow[];
+
+  if (page === undefined || pageSize === undefined) {
+    todoLists = await db.query.todoLists.findMany({
+      orderBy: (todoLists, { asc }) => [asc(todoLists.id)],
+    });
+  } else {
+    todoLists = await db.query.todoLists.findMany({
+      orderBy: (todoLists, { asc }) => [asc(todoLists.id)],
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+    });
+  }
+
   return c.json(todoLists.map(toTodoListResponse));
 });
 
