@@ -1,0 +1,21 @@
+info:
+  name: get_echo
+  type: http
+
+http:
+  method: GET
+  url: http://localhost:3000/echo?message=hello&name=techtrain
+  params:
+    - name: message
+      value: hello
+      type: query
+    - name: name
+      value: techtrain
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
