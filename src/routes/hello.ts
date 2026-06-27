@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { db } from "../db/client.js";
-import { todoLists } from "../db/schema.js";
+import { todoItems, todoLists } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 
 const helloRoute = new Hono();
@@ -138,6 +138,46 @@ helloRoute.get("/lists/:listId/items/:itemId", async (c) => {
     created_at: todoItem.createdAt,
     updated_at: todoItem.updatedAt,
   });
+});
+
+type NewTodoItem = {
+  title: string;
+  description: string;
+  due_at: string; // ISO 8601形式の日時文字列
+};
+
+helloRoute.post("lists/:listId/items", async (c) => {
+  const listId = Number(c.req.param("listId"));
+  const { title, description, due_at } = await c.req.json<NewTodoItem>();
+  const insertedRows = await db
+    .insert(todoItems)
+    .values({
+      todoListId: listId,
+      title,
+      description,
+      dueAt: new Date(due_at),
+    })
+    .returning();
+
+  if (insertedRows.length !== 1) {
+    return c.json({ error: "Failed to create todo item" }, 500);
+  }
+
+  const inserted = insertedRows[0];
+
+  return c.json(
+    {
+      id: inserted.id,
+      todo_list_id: inserted.todoListId,
+      title: inserted.title,
+      description: inserted.description ?? "",
+      created_at: inserted.createdAt,
+      updated_at: inserted.updatedAt,
+      status_code: inserted.statusCode,
+      dueAt: inserted.dueAt,
+    },
+    200,
+  );
 });
 
 export default helloRoute;
