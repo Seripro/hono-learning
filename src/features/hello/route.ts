@@ -1,8 +1,12 @@
 import { Hono } from "hono";
 
-const echoRoute = new Hono();
+const helloRoute = new Hono();
 
-echoRoute.get("/echo", (c) => {
+helloRoute.get("/hello", (c) => {
+  return c.json({ Message: "Hello Hono!" });
+});
+
+helloRoute.get("/echo", (c) => {
   // クエリパラメータの取得
   const name = c.req.query("name");
   const message = c.req.query("message");
@@ -10,4 +14,4 @@ echoRoute.get("/echo", (c) => {
   return c.json({ Message: `${message} ${name}!!!` });
 });
 
-export default echoRoute;
+export default helloRoute;

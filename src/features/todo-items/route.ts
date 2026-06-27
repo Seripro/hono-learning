@@ -1,123 +1,11 @@
 import { Hono } from "hono";
-import { db } from "../db/client.js";
-import { todoItems, todoLists } from "../db/schema.js";
+import { db } from "../../db/client.js";
+import { todoItems } from "../../db/schema.js";
 import { and, eq } from "drizzle-orm";
 
-const helloRoute = new Hono();
+const todoItemRoute = new Hono();
 
-helloRoute.get("/hello", (c) => {
-  return c.json({ Message: "Hello Hono!" });
-});
-
-helloRoute.get("/health", (c) => {
-  return c.json({ status: "ok" });
-});
-
-helloRoute.get("/lists/:listId", async (c) => {
-  const listId = Number(c.req.param("listId"));
-  const todoList = await db.query.todoLists.findFirst({
-    where: (todoLists, { eq }) => eq(todoLists.id, listId),
-  });
-
-  if (!todoList) {
-    return c.json({ error: "Todo list not found" }, 404);
-  }
-
-  return c.json({
-    id: todoList.id,
-    title: todoList.title,
-    description: todoList.description ?? "",
-    created_at: todoList.createdAt,
-    updated_at: todoList.updatedAt,
-  });
-});
-
-type NewTodoList = {
-  title: string;
-  description: string;
-};
-
-helloRoute.post("/lists", async (c) => {
-  const { title, description } = await c.req.json<NewTodoList>();
-  const insertedRows = await db
-    .insert(todoLists)
-    .values({
-      title,
-      description,
-    })
-    .returning();
-
-  if (insertedRows.length !== 1) {
-    return c.json({ error: "Failed to create todo list" }, 500);
-  }
-
-  const inserted = insertedRows[0];
-
-  return c.json(
-    {
-      id: inserted.id,
-      title: inserted.title,
-      description: inserted.description ?? "",
-      created_at: inserted.createdAt,
-      updated_at: inserted.updatedAt,
-    },
-    200,
-  );
-});
-
-type UpdateTodoList = {
-  title?: string;
-  description?: string;
-};
-
-helloRoute.patch("/lists/:listId", async (c) => {
-  const listId = Number(c.req.param("listId"));
-  const { title, description } = await c.req.json<UpdateTodoList>();
-  const updatedRows = await db
-    .update(todoLists)
-    .set({
-      title,
-      description,
-    })
-    .where(eq(todoLists.id, listId))
-    .returning();
-  if (updatedRows.length === 0) {
-    return c.json({ error: "Todo list not found" }, 404);
-  }
-
-  if (updatedRows.length !== 1) {
-    return c.json({ error: "Failed to update todo list" }, 500);
-  }
-
-  const updated = updatedRows[0];
-  return c.json({
-    id: updated.id,
-    title: updated.title,
-    description: updated.description ?? "",
-    created_at: updated.createdAt,
-    updated_at: updated.updatedAt,
-  });
-});
-
-helloRoute.delete("/lists/:listId", async (c) => {
-  const listId = Number(c.req.param("listId"));
-  const deletedRows = await db
-    .delete(todoLists)
-    .where(eq(todoLists.id, listId))
-    .returning();
-
-  if (deletedRows.length === 0) {
-    return c.json({ error: "Todo list not found" }, 404);
-  }
-
-  if (deletedRows.length !== 1) {
-    return c.json({ error: "Failed to delete todo list" }, 500);
-  }
-
-  return c.json({}, 200);
-});
-
-helloRoute.get("/lists/:listId/items/:itemId", async (c) => {
+todoItemRoute.get("/lists/:listId/items/:itemId", async (c) => {
   const listId = Number(c.req.param("listId"));
   const itemId = Number(c.req.param("itemId"));
   const todoItem = await db.query.todoItems.findFirst({
@@ -146,7 +34,7 @@ type NewTodoItem = {
   due_at: string; // ISO 8601形式の日時文字列
 };
 
-helloRoute.post("lists/:listId/items", async (c) => {
+todoItemRoute.post("lists/:listId/items", async (c) => {
   const listId = Number(c.req.param("listId"));
   const { title, description, due_at } = await c.req.json<NewTodoItem>();
   const insertedRows = await db
@@ -187,7 +75,7 @@ type UpdateTodoItem = {
   complete?: boolean; // 完了状態(true: 完了, false: 未完了)
 };
 
-helloRoute.patch("/lists/:listId/items/:itemId", async (c) => {
+todoItemRoute.patch("/lists/:listId/items/:itemId", async (c) => {
   const listId = Number(c.req.param("listId"));
   const itemId = Number(c.req.param("itemId"));
   const { title, description, due_at, complete } =
@@ -223,7 +111,7 @@ helloRoute.patch("/lists/:listId/items/:itemId", async (c) => {
   });
 });
 
-helloRoute.delete("/lists/:listId/items/:itemId", async (c) => {
+todoItemRoute.delete("/lists/:listId/items/:itemId", async (c) => {
   const listId = Number(c.req.param("listId"));
   const itemId = Number(c.req.param("itemId"));
   const deletedRows = await db
@@ -242,4 +130,4 @@ helloRoute.delete("/lists/:listId/items/:itemId", async (c) => {
   return c.json({}, 200);
 });
 
-export default helloRoute;
+export default todoItemRoute;
