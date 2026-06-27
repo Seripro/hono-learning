@@ -25,6 +25,16 @@ const toTodoItemResponse = (todoItem: {
   updated_at: todoItem.updatedAt,
 });
 
+const toPositiveInt = (value: string | undefined) => {
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    return undefined;
+  }
+
+  return parsed;
+};
+
 todoItemRoute.get("/lists/:listId/items/:itemId", async (c) => {
   const listId = Number(c.req.param("listId"));
   const itemId = Number(c.req.param("itemId"));
@@ -48,14 +58,38 @@ todoItemRoute.get("/lists/:listId/items/:itemId", async (c) => {
   });
 });
 
+type TodoItemRow = {
+  id: number;
+  todoListId: number;
+  title: string;
+  description: string | null;
+  statusCode: number;
+  createdAt: Date;
+  updatedAt: Date;
+  dueAt: Date | null;
+};
+
 todoItemRoute.get("lists/:listId/items", async (c) => {
   const listId = Number(c.req.param("listId"));
-  const rows = await db.query.todoItems.findMany({
-    where: (todoItems, { eq }) => eq(todoItems.todoListId, listId),
-    orderBy: (todoItems, { asc }) => [asc(todoItems.id)],
-  });
+  const page = toPositiveInt(c.req.query("page"));
+  const pageSize = toPositiveInt(c.req.query("page_size"));
+  let todoItems: TodoItemRow[];
 
-  return c.json(rows.map(toTodoItemResponse));
+  if (page === undefined || pageSize === undefined) {
+    todoItems = await db.query.todoItems.findMany({
+      where: (todoItems, { eq }) => eq(todoItems.todoListId, listId),
+      orderBy: (todoItems, { asc }) => [asc(todoItems.id)],
+    });
+  } else {
+    todoItems = await db.query.todoItems.findMany({
+      where: (todoItems, { eq }) => eq(todoItems.todoListId, listId),
+      orderBy: (todoItems, { asc }) => [asc(todoItems.id)],
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+    });
+  }
+
+  return c.json(todoItems.map(toTodoItemResponse));
 });
 
 type NewTodoItem = {
